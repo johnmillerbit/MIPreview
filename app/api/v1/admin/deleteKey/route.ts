@@ -8,7 +8,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Missing keyId" }, { status: 400 });
     }
 
-    const result = await pool.query("DELETE FROM keys WHERE key = $1 RETURNING *", [keyId]);
+    const result = await pool.query("DELETE FROM public.keys WHERE key = $1 RETURNING *", [keyId]);
     if (result.rowCount === 0) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }

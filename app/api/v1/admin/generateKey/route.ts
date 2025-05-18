@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const user = await response.json();
 
 	const generateKey = await pool.query(`
-			insert into keys (key, discordID, username, profile, globalname)
+			insert into public.keys (key, discordID, username, profile, globalname)
 			values
 			($1, $2, $3, $4, $5)
 			RETURNING *

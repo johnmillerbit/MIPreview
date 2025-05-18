@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
                     await client.query(
                         `
-						INSERT INTO reviews (comment, rate, keyid)
+						INSERT INTO public.reviews (comment, rate, keyid)
 						VALUES ($1, $2, $3)
         `,
                         [comment, rate, getKeyID.rows[0].keyid]
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
                     await client.query(
                         `
-						UPDATE keys
+						UPDATE public.keys
 						SET isused = true
 						WHERE keyid = $1
         `,

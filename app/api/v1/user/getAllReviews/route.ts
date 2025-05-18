@@ -11,8 +11,8 @@ export async function GET() {
         reviews.keyid,
         keys.globalname,
         keys.profile
-      FROM keys
-      INNER JOIN reviews ON keys.keyid = reviews.keyid
+      FROM public.keys
+      INNER JOIN public.reviews ON keys.keyid = reviews.keyid
       ORDER BY reviews.created_at DESC
     `);
 
