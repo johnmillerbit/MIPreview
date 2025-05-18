@@ -32,15 +32,6 @@ export async function POST(req: NextRequest) {
 			RETURNING *
 		`, [uuid(), discordID, user.username, `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`, user.global_name])
 
-    // return NextResponse.json({
-    //   id: user.id,
-    //   username: user.username,
-    //   discriminator: user.discriminator,
-    //   avatar: user.avatar,
-    //   global_name: user.global_name,
-    //   display_avatar_url: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`,
-    // });
-
 	return NextResponse.json(generateKey.rows)
   } catch (err) {
     console.error(err);
