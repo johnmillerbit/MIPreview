@@ -11,6 +11,8 @@ import {
     ChevronDown,
     ChevronUp,
     Edit3,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -45,6 +47,8 @@ const deleteKeyAPI = async (keyId: string): Promise<{ success: boolean }> => {
     return { success: true };
 };
 
+const KEYS_PER_PAGE = 5;
+
 export default function AdminDashboard() {
     const [keys, setKeys] = useState<ApiKey[]>([]);
     const [loading, setLoading] = useState(true);
@@ -54,6 +58,7 @@ export default function AdminDashboard() {
         key: keyof ApiKey | "actions";
         direction: "ascending" | "descending";
     }>({ key: "created_at", direction: "descending" });
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         const loadKeys = async () => {
@@ -124,6 +129,18 @@ export default function AdminDashboard() {
             (k.username &&
                 k.username.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    // PAGINATION LOGIC
+    const totalPages = Math.max(1, Math.ceil(filteredKeys.length / KEYS_PER_PAGE));
+    const paginatedKeys = filteredKeys.slice(
+        (currentPage - 1) * KEYS_PER_PAGE,
+        currentPage * KEYS_PER_PAGE
+    );
+
+    // Reset to page 1 if filter/search changes and currentPage is out of range
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(1);
+    }, [searchTerm, filteredKeys.length, totalPages, currentPage]);
 
     const formatDate = (dateString: string | null | undefined) => {
         if (!dateString) return "N/A";
@@ -361,7 +378,7 @@ export default function AdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700">
-                                    {filteredKeys.map((k: ApiKey) => (
+                                    {paginatedKeys.map((k: ApiKey) => (
                                         <tr
                                             key={k.id}
                                             className="hover:bg-slate-700/30 transition-colors duration-150 ease-in-out"
@@ -429,6 +446,30 @@ export default function AdminDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+                    {/* PAGINATION CONTROLS */}
+                    {filteredKeys.length > KEYS_PER_PAGE && (
+                        <div className="flex justify-center items-center gap-4 py-6 bg-slate-900 border-t border-slate-700">
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 rounded bg-slate-700 text-slate-100 disabled:opacity-50 flex items-center"
+                            >
+                                <ChevronLeft size={18} className="mr-1" />
+                                Previous
+                            </button>
+                            <span className="text-slate-300">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 rounded bg-slate-700 text-slate-100 disabled:opacity-50 flex items-center"
+                            >
+                                Next
+                                <ChevronRight size={18} className="ml-1" />
+                            </button>
                         </div>
                     )}
                 </div>
