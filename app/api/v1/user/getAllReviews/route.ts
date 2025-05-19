@@ -16,12 +16,16 @@ export async function GET() {
       ORDER BY reviews.created_at DESC
     `);
 
-    return NextResponse.json(rows);
+    const res = NextResponse.json(rows);
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   } catch (err) {
     console.error("Error fetching reviews:", err);
-    return NextResponse.json(
+    const res = NextResponse.json(
       { error: "Internal Server Error", detail: (err as Error).message },
       { status: 500 }
     );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 }
