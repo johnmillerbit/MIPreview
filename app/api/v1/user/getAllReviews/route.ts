@@ -4,6 +4,7 @@ import pool from "@/lib/db";
 export async function GET(request: NextRequest) {
     try {
         const host = request.headers.get("host");
+        console.log(host)
         const allowedOrigins = [
             "https://mipreview.netlify.app/",
             "http://192.168.1.26:3000",
