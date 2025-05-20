@@ -3,6 +3,23 @@ import pool from "@/lib/db";
 
 export async function POST(req: NextRequest) {
     try {
+
+        const host = req.headers.get("host");
+        const allowedOrigins = [
+            "https://mipreview.netlify.app/",
+            "http://192.168.1.26:3000",
+        ];
+
+        if (
+            !host ||
+            !allowedOrigins.includes(`http://${host}` || `https://${host}`)
+        ) {
+            return NextResponse.json(
+                { error: "Unauthorized access" },
+                { status: 403 }
+            );
+        }
+
         const { comment, rate, key } = await req.json();
 
         if (!key) {

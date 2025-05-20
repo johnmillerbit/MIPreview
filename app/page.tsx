@@ -72,7 +72,7 @@ export default function ReviewsPage() {
       })
       .catch((error) => console.error("Failed to fetch reviews:", error))
       .finally(() => setLoading(false));
-  }, [page, reviews]);
+  }, []);
 
   const overallAverageRating = useMemo(() => {
     if (totalReviews === 0) return 0;
