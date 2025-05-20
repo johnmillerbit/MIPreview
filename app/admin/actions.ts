@@ -1,7 +1,7 @@
 'use server';
 
 const ADMIN_SECRET_API_KEY = process.env.ADMIN_SECRET_API_KEY; // เข้าถึงได้เฉพาะบน Server
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000" + '/api/v1/admin/generateKey'; // URL เต็มของ API Route ของคุณ
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/api/v1/admin/generateKey'; // URL เต็มของ API Route ของคุณ
 
 export async function generateKeyAction(discordID: string) {
   if (!ADMIN_SECRET_API_KEY) {
