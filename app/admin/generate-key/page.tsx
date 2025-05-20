@@ -1,8 +1,12 @@
+// components/GenerateKeyPage.tsx (หรือ path ที่คุณวาง Client Component นี้)
 "use client";
 
 import { useState } from "react";
 import { KeyRound, ArrowLeft, Loader2, XCircle } from 'lucide-react';
 import Link from "next/link";
+
+// **นำเข้า Server Action ของคุณ**
+import { generateKeyAction } from '@/app/admin/actions'; // ปรับ path ให้ถูกต้อง
 
 export default function GenerateKeyPage() {
   const [discordID, setDiscordID] = useState("");
@@ -17,21 +21,17 @@ export default function GenerateKeyPage() {
     setKey(null);
 
     try {
-      const res = await fetch("/api/v1/admin/generateKey", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ discordID }),
-      });
+      // **เปลี่ยนมาเรียกใช้ Server Action แทนการ fetch ตรงๆ**
+      const result = await generateKeyAction(discordID); 
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to generate key.");
+      if (!result.success) { // ตรวจสอบจาก result.success ที่ส่งกลับมาจาก Server Action
+        setError(result.error || "Failed to generate key.");
       } else {
-        const data = await res.json();
-        setKey(data[0].key);
+        setKey(result.data[0]?.key || null); // ตรวจสอบว่ามี key ใน data หรือไม่
       }
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (err) { // catch error ที่อาจเกิดขึ้นระหว่างการเรียก Server Action
+      console.error("Error calling Server Action:", err);
+      setError("Network error or unexpected issue. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ export default function GenerateKeyPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/review/${key}`);
+                      navigator.clipboard.writeText(`<span class="math-inline">\{window\.location\.origin\}/review/</span>{key}`);
                     }}
                     className="ml-2 px-2 py-1 bg-sky-700 hover:bg-sky-600 text-xs rounded text-white transition-colors"
                   >
