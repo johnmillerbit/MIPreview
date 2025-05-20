@@ -20,7 +20,7 @@ const commonCORSHeaders = {
 };
 
 // Handler สำหรับ Preflight Request (OPTIONS)
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
     return NextResponse.json({}, { status: 200, headers: commonCORSHeaders });
 }
 
