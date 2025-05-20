@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+
 export async function GET(request: Request) {
   try {
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "5", 10);
@@ -46,6 +49,7 @@ export async function GET(request: Request) {
       page,
     });
     res.headers.set("Cache-Control", "no-store");
+    res.headers.set("Access-Control-Allow-Origin", corsOrigin);
     return res;
   } catch (err) {
     console.error("Error fetching reviews:", err);
@@ -54,6 +58,7 @@ export async function GET(request: Request) {
       { status: 500 }
     );
     res.headers.set("Cache-Control", "no-store");
+    res.headers.set("Access-Control-Allow-Origin", corsOrigin);
     return res;
   }
 }
