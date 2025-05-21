@@ -23,8 +23,6 @@ type ApiResponse = {
 
 // Component to display stars based on a rating and size
 const StarDisplay = ({ rating, size = 18 }: { rating: number; size?: number }) => {
-  // const filledStars = Math.floor(rating);
-
   return (
     <div className="flex items-center">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -39,6 +37,40 @@ const StarDisplay = ({ rating, size = 18 }: { rating: number; size?: number }) =
   );
 };
 
+// New component for comments with a "Show More" option
+const CommentWithShowMore = ({ comment }: { comment: string }) => {
+  const [showFullComment, setShowFullComment] = useState(false);
+  // Define a character limit that roughly corresponds to 3 lines of text
+  // This value might need adjustment based on font size and container width
+  const CHARACTER_LIMIT = 180; 
+
+  // Determine if the comment needs to be truncated
+  const needsShowMore = comment.length > CHARACTER_LIMIT;
+
+  const displayedComment = useMemo(() => {
+    if (needsShowMore && !showFullComment) {
+      // Truncate the comment and add an ellipsis
+      return comment.substring(0, CHARACTER_LIMIT) + '...';
+    }
+    return comment;
+  }, [comment, showFullComment, needsShowMore]);
+
+  return (
+    <div>
+      {/* Added break-words to ensure long words wrap */}
+      <p className="text-yellow-100 leading-relaxed whitespace-pre-wrap break-words">{displayedComment}</p>
+      {needsShowMore && (
+        <button
+          onClick={() => setShowFullComment(!showFullComment)}
+          className="text-yellow-300 hover:text-yellow-200 text-sm mt-2 font-medium focus:outline-none"
+        >
+          {showFullComment ? "แสดงน้อยลง" : "แสดงเพิ่มเติม"}
+        </button>
+      )}
+    </div>
+  );
+};
+
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -49,12 +81,13 @@ export default function ReviewsPage() {
   const [totalRatingSum, setTotalRatingSum] = useState(0);
   const REVIEWS_PER_PAGE = 5;
 
+  // Fetch reviews whenever the page changes
   useEffect(() => {
     setLoading(true);
     fetch(`/api/v1/user/getAllReviews?page=${page}&limit=${REVIEWS_PER_PAGE}`)
       .then((res) => res.json())
       .then((data: ApiResponse) => {
-        setReviews(data.reviews || data);
+        setReviews(data.reviews || []); // Ensure reviews is an array
         setTotalPages(
           data.totalPages ||
           Math.ceil((data.total || (data.reviews?.length ?? 0)) / REVIEWS_PER_PAGE)
@@ -64,15 +97,17 @@ export default function ReviewsPage() {
           setTotalRatingSum(data.totalRatingSum);
         } else if (data.total !== undefined) {
           setTotalReviews(data.total);
-          setTotalRatingSum(reviews.reduce((sum, review) => sum + review.rate, 0));
+          // If totalRatingSum is not provided, calculate from fetched reviews
+          setTotalRatingSum(data.reviews?.reduce((sum, review) => sum + review.rate, 0) || 0);
         } else {
-          setTotalReviews(reviews.length);
-          setTotalRatingSum(reviews.reduce((sum, review) => sum + review.rate, 0));
+          // Fallback if no total info is provided
+          setTotalReviews(data.reviews?.length || 0);
+          setTotalRatingSum(data.reviews?.reduce((sum, review) => sum + review.rate, 0) || 0);
         }
       })
       .catch((error) => console.error("Failed to fetch reviews:", error))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page, REVIEWS_PER_PAGE]); // Add REVIEWS_PER_PAGE to dependency array
 
   const overallAverageRating = useMemo(() => {
     if (totalReviews === 0) return 0;
@@ -91,12 +126,12 @@ export default function ReviewsPage() {
             รีวิวจากผู้ใช้
           </h1>
           <div className="flex flex-col items-center mt-4">
-             <p className="text-yellow-300 mb-2 text-lg">คะแนนเฉลี่ยโดยรวม:</p>
-             <div className="flex items-center justify-center">
+              <p className="text-yellow-300 mb-2 text-lg">คะแนนเฉลี่ยโดยรวม:</p>
+              <div className="flex items-center justify-center">
                 <StarDisplay rating={overallAverageRating} size={28} />
                 <span className="ml-3 text-2xl font-bold text-yellow-200">{overallAverageRating.toFixed(1)} / 5</span>
-             </div>
-             <p className="text-yellow-300 mt-2 text-sm">จาก {totalReviews} รีวิว</p>
+              </div>
+              <p className="text-yellow-300 mt-2 text-sm">จาก {totalReviews} รีวิว</p>
           </div>
           <p className="text-yellow-300 mt-4">ดูว่าคนอื่นพูดถึงบริการของเราว่าอย่างไรบ้าง</p>
         </header>
@@ -111,7 +146,7 @@ export default function ReviewsPage() {
             <div className="bg-yellow-800/50 rounded-xl p-12 text-center border border-yellow-700">
               <p className="text-yellow-300 text-lg">ยังไม่มีรีวิว</p>
               <Link
-                href="/review"
+                href="/"
                 className="mt-4 inline-block py-2 px-4 bg-yellow-500 hover:bg-yellow-600 rounded-lg text-white font-medium transition-colors"
               >
                 เป็นคนแรกที่แสดงความคิดเห็น
@@ -128,11 +163,12 @@ export default function ReviewsPage() {
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-12 h-12 rounded-full overflow-hidden border border-yellow-600 bg-yellow-700 flex-shrink-0">
                         <Image
-                          src={review.profile || "/default-avatar.png"}
+                          src={review.profile || "https://placehold.co/48x48/654321/ffffff?text=AV"}
                           alt={review.globalname}
                           width={48}
                           height={48}
                           className="object-cover w-full h-full"
+                          onError={(e) => { e.currentTarget.src = "https://placehold.co/48x48/654321/ffffff?text=AV"; }}
                         />
                       </div>
                       <div className="flex-1">
@@ -142,11 +178,12 @@ export default function ReviewsPage() {
                         </p>
                       </div>
                       <div className="flex-shrink-0">
-                        <StarDisplay rating={review.rate} /> {/* Use the consolidated component */}
+                        <StarDisplay rating={review.rate} />
                       </div>
                     </div>
 
-                    <p className="text-yellow-100 leading-relaxed">{review.comment}</p>
+                    {/* Use the new CommentWithShowMore component here */}
+                    <CommentWithShowMore comment={review.comment} />
                   </div>
                 ))}
               </div>
